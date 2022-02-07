@@ -4,8 +4,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
-def glpkJavaVersion = '1.12.0'
-def glpkJavaJniLocation = '/usr/local/lib/jni'
+def glpkJavaVersion = '1.11.0'
+def glpkJavaJniLocation = 'C:/Program Files/glpk-4.64/w64/'
 def javaHome = javaToolchains.compilerFor { languageVersion = javaVersion }.get().metadata.installationPath.asFile.toString()
 
 repositories {
