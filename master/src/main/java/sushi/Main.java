@@ -48,6 +48,7 @@ public class Main {
 	}
 	
 	public int start() {
+		Thread timeoutThread = null;
 		try {
 			configureLogger();
 			final Logger logger = new Logger(Main.class);
@@ -73,24 +74,30 @@ public class Main {
 				break;
 			default:
 				logger.error("Unexpected internal error: unexpected value for -cov option");
+				interruptThread(timeoutThread);
 				return 2;
 			}
 
 			final boolean doEverything = (this.options.getPhases() == null);
 
-			makeGlobalTimeoutThread();
+			timeoutThread = makeGlobalTimeoutThread();
 
 			doMainToolsLoop(logger, tools, repeatFrom, doEverything);
 
 			logger.info(getName() + " terminates");
+			interruptThread(timeoutThread);
 			return 0;
 		} catch (CheckClasspathException e) {
+			interruptThread(timeoutThread);
 			return 1;
 		} catch (ToolAbortException e) {
+			interruptThread(timeoutThread);
 			return 1;
 		} catch (IOException e) {
+			interruptThread(timeoutThread);
 			return 1;
 		} catch (InternalUnexpectedException e) {
+			interruptThread(timeoutThread);
 			return 2;
 		}
 	}
@@ -163,7 +170,7 @@ public class Main {
 	 * Makes and runs a thread that detects when the global
 	 * timeout expires.
 	 */
-	private void makeGlobalTimeoutThread() {
+	private Thread makeGlobalTimeoutThread() {
 		this.timedOut = false;
 		if (this.options.getGlobalBudget() > 0) {
 			Thread chrono = new Thread(() -> {
@@ -176,7 +183,14 @@ public class Main {
 				setTimedOut();
 			});
 			chrono.start();
+			return chrono;
 		}
+		return null;
+	}
+	
+	private void interruptThread(Thread chrono) {
+		if (chrono != null)
+			chrono.interrupt();
 	}
 	
 	private synchronized void setTimedOut() {
