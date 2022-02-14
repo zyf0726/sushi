@@ -24,6 +24,8 @@ public class RunHeapSyn {
 	
 	private static final Logger logger = new Logger(RunHeapSyn.class);
 	
+	private HeapSynParameters parameters;
+	
 	private TestGenerator testGenerator;
 	
 	private long timeBuildGraph;
@@ -31,18 +33,17 @@ public class RunHeapSyn {
 	private int numRunFail, numRunSucc;
 	
 	public RunHeapSyn(HeapSynParameters p) {
+		this.parameters = p;
+		this.testGenerator = null;
+		this.timeBuildGraph = 0;
 		this.totTimeFail = this.totTimeSucc = 0;
 		this.numRunFail = this.numRunSucc = 0;
-		logger.info("building heap transformation graph for " + p.getTargetClass());
-		long start = System.currentTimeMillis();
-		List<WrappedHeap> heaps = this.buildGraph(p);
-		long elapsed = System.currentTimeMillis() - start;
-		logger.info("heap transformation graph built, elapsed " + elapsed/1000 + " seconds");
-		this.testGenerator = new TestGenerator(heaps);
-		this.timeBuildGraph = elapsed;
 	}
 	
 	private List<WrappedHeap> buildGraph(HeapSynParameters p) {
+		logger.info("building heap transformation graph for " + p.getTargetClass());
+		long start = System.currentTimeMillis();
+		
 		SymbolicExecutor executor = new SymbolicExecutorWithCachedJBSE(
 				p.getFieldFilter());
 		DynamicGraphBuilder gb = new DynamicGraphBuilder(
@@ -50,12 +51,21 @@ public class RunHeapSyn {
 		for (Entry<Class<?>, Integer> entry : p.getHeapScope().entrySet()) {
 			Class<?> cls = entry.getKey();
 			int scope = entry.getValue();
-			logger.info("set heap scope of " + cls + " to " + scope);
+			logger.debug("set heap scope of " + cls + " to " + scope);
 			gb.setHeapScope(entry.getKey(), entry.getValue());
 		}
 		SymbolicHeap initHeap = new SymbolicHeapAsDigraph(ExistExpr.ALWAYS_TRUE);
 		List<WrappedHeap> heaps = gb.buildGraph(initHeap, p.getMaxSeqLength());
+		
+		long elapsed = System.currentTimeMillis() - start;
+		this.timeBuildGraph = elapsed;
+		logger.info("heap transformation graph built, elapsed " + elapsed/1000 + " seconds");
 		return heaps;
+	}
+	
+	public void init() {
+		List<WrappedHeap> heaps = this.buildGraph(this.parameters);
+		this.testGenerator = new TestGenerator(heaps);
 	}
 	
 	public final boolean useEvosuiteIfFailed() {
@@ -138,7 +148,7 @@ public class RunHeapSyn {
 					message.append(", ");
 			}
 			message.append(")");
-			logger.info("found a public method " + message.toString());
+			logger.debug("found a public method " + message.toString());
 		}
 		return methods;
 	}

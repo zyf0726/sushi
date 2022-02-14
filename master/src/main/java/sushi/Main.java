@@ -58,6 +58,9 @@ public class Main {
 			logger.info("This is " + getName() + ", version " + getVersion() + ", " + '\u00a9' + " 2015-2021 " + getVendor());
 
 			checkPrerequisites(logger);
+			
+			RunHeapSyn heapsyn = this.options.getHeapSynRunner();
+			heapsyn.init();
 
 			final Tool<?>[] tools;
 			final int repeatFrom;
@@ -88,15 +91,14 @@ public class Main {
 			doMainToolsLoop(logger, tools, repeatFrom, doEverything);
 			
 			long elapsed = System.currentTimeMillis() - start;
-			RunHeapSyn runner = this.options.getHeapSynRunner();
 			logger.info(getName() + " terminates, elapsed " + elapsed/1000.0 + " seconds");
 			logger.info("statistics: number of generated test = " + toolEvosuite.getNumGeneratedTest());
 			logger.info("statistics: number of Evosuite run = " + toolEvosuite.getNumRunEvosuite());
 			logger.info("statistics: average Evosuite running time = " + toolEvosuite.getAvgTimeEvosuite() + " (ms)");
-			logger.info("statistics: number of HeapSyn run (successful) = " + runner.getNumSuccRun());
-			logger.info("statistics: number of HeapSyn run (failed) = " + runner.getNumFailRun());
-			logger.info("statistics: average HeapSyn running time (successful) = " + runner.getAvgSuccTime() + " (ms)");
-			logger.info("statistics: average HeapSyn running time (failed) = " + runner.getAvgFailTime() + " (ms)");
+			logger.info("statistics: number of HeapSyn run (successful) = " + heapsyn.getNumSuccRun());
+			logger.info("statistics: number of HeapSyn run (failed) = " + heapsyn.getNumFailRun());
+			logger.info("statistics: average HeapSyn running time (successful) = " + heapsyn.getAvgSuccTime() + " (ms)");
+			logger.info("statistics: average HeapSyn running time (failed) = " + heapsyn.getAvgFailTime() + " (ms)");
 			interruptThread(timeoutThread);
 			return 0;
 		} catch (CheckClasspathException e) {
