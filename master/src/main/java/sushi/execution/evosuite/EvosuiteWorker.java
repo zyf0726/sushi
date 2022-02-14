@@ -25,7 +25,14 @@ public class EvosuiteWorker extends Worker {
 	@Override
 	public ExecutionResult call() throws EvosuiteException, InterruptedException {
 		final String[] p = this.evosuite.getInvocationParameters(this.taskNumber);
-		logger.debug("Task " + this.taskNumber + ": invoking " + this.evosuite.getCommandLine());
+		if (p == null) {
+			logger.debug("Task " + this.taskNumber + ": no need to invoke Evosuite, cancelled");
+			final ExecutionResult result = new ExecutionResult();
+			result.setExitStatus(0);
+			return result;
+		}
+		logger.debug("Task " + this.taskNumber + ": [" + (this.evosuite.numRunEvosuite++) + 
+				"] invoking " + this.evosuite.getCommandLine());
 		
 		final Path logFilePath = DirectoryUtils.getTmpDirPath(this.options).resolve("evosuite-task-" + this.taskNumber + "-" + Thread.currentThread().getName() + ".log");		
 		final ProcessBuilder pb = new ProcessBuilder(p).redirectErrorStream(true);
@@ -38,6 +45,7 @@ public class EvosuiteWorker extends Worker {
 			td.start();
 			final int exitStatus = process.waitFor();
 			final long elapsed = System.currentTimeMillis() - start;
+			this.evosuite.totTimeEvosuite += elapsed;
 			logger.debug("Task " + this.taskNumber + " ended, elapsed " + elapsed/1000 + " seconds");
 			td.join();
 			final ExecutionResult result = new ExecutionResult();

@@ -35,6 +35,12 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 	private HashSet<Integer> branchesToIgnore;
 	private HashSet<Integer> cancelledTasks = new HashSet<>();
 	
+	private int numGeneratedTest = 0;
+	
+	public int getNumberGeneratedTest() {
+		return this.numGeneratedTest;
+	}
+	
 	public EvosuiteCoordinator(Tool<?> tool, Options options) { 
 		super(tool);
 		this.options = options;
@@ -177,14 +183,37 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 		this.coveredBranches.addAll(branchesOfTarget);
 		final int numBranchesNew = branchesNew.size();
 		if (this.options.getCoverage() == Coverage.BRANCHES) {
-			logger.info("Generated test, covered " + numBranchesNew + " new branches");
+			logger.info("Evosuite: generated test #" + (this.numGeneratedTest++) +
+					", covered " + numBranchesNew + " new branches");
 			if (numBranchesNew > 0) {
+				this.cancelledTasks.add(taskNumber);
 				cancelTasksFullyCoveredBranches();
 				emitTest(methodNumber, localTraceNumber);
 			}
 		} else {
-			logger.info("Generated test");
+			logger.info("Evosuite: generated test #" + (this.numGeneratedTest++));
 			emitTest(methodNumber, localTraceNumber);
+		}
+	}
+	
+	public synchronized void onHeapSynTestGenerated(int taskNumber, int methodNumber, int localTraceNumber) {
+		final HashSet<Integer> branchesOfTarget = branchesOfTarget(taskNumber, methodNumber, localTraceNumber);
+		final HashSet<Integer> branchesNew = new HashSet<>(branchesOfTarget);
+		branchesNew.removeAll(this.coveredBranches);
+		branchesNew.removeAll(this.branchesToIgnore);
+		this.coveredBranches.addAll(branchesOfTarget);
+		final int numBranchesNew = branchesNew.size();
+		if (this.options.getCoverage() == Coverage.BRANCHES) {
+			logger.info("HeapSyn: generated test #" + (this.numGeneratedTest++) +
+					", covered " + numBranchesNew + " new branches");
+			if (numBranchesNew > 0) {
+				this.cancelledTasks.add(taskNumber);
+				cancelTasksFullyCoveredBranches();
+				// emitTest(methodNumber, localTraceNumber);
+			}
+		} else {
+			logger.info("HeapSyn: generated test #" + (this.numGeneratedTest++));
+			// emitTest(methodNumber, localTraceNumber);
 		}
 	}
 	

@@ -48,6 +48,7 @@ public class Main {
 	}
 	
 	public int start() {
+		long start = System.currentTimeMillis();
 		Thread timeoutThread = null;
 		try {
 			configureLogger();
@@ -59,17 +60,18 @@ public class Main {
 
 			final Tool<?>[] tools;
 			final int repeatFrom;
+			final Evosuite toolEvosuite = new Evosuite(this.options);
 			switch (this.options.getCoverage()) {
 			case PATHS:
-				tools = new Tool[]{ new JBSEMethods(this.options, true), new Merger(this.options), new ListPaths(this.options), new Javac(this.options), new Evosuite(this.options), new LoopEnd() };
+				tools = new Tool[]{ new JBSEMethods(this.options, true), new Merger(this.options), new ListPaths(this.options), new Javac(this.options), toolEvosuite, new LoopEnd() };
 				repeatFrom = -1;
 				break;
 			case UNSAFE:
-				tools = new Tool[]{ new JBSEMethods(this.options, false), new Merger(this.options), new BestPath(this.options), new JBSETraces(this.options), new Javac(this.options), new Evosuite(this.options), new LoopEnd() };
+				tools = new Tool[]{ new JBSEMethods(this.options, false), new Merger(this.options), new BestPath(this.options), new JBSETraces(this.options), new Javac(this.options), toolEvosuite, new LoopEnd() };
 				repeatFrom = -1;
 				break;
 			case BRANCHES:
-				tools = new Tool[]{ new JBSEMethods(this.options, false), new Merger(this.options), new Minimizer(this.options), new JBSETraces(this.options), new Javac(this.options), new Evosuite(this.options), new LoopMgr(this.options) };
+				tools = new Tool[]{ new JBSEMethods(this.options, false), new Merger(this.options), new Minimizer(this.options), new JBSETraces(this.options), new Javac(this.options), toolEvosuite, new LoopMgr(this.options) };
 				repeatFrom = 2;
 				break;
 			default:
@@ -83,8 +85,12 @@ public class Main {
 			timeoutThread = makeGlobalTimeoutThread();
 
 			doMainToolsLoop(logger, tools, repeatFrom, doEverything);
-
-			logger.info(getName() + " terminates");
+			
+			long elapsed = System.currentTimeMillis() - start;
+			logger.info(getName() + " terminates, elapsed " + elapsed/1000.0 + " seconds");
+			logger.info("statistics: number of generated test = " + toolEvosuite.getNumGeneratedTest());
+			logger.info("statistics: number of Evosuite run = " + toolEvosuite.getNumRunEvosuite());
+			logger.info("statistics: average Evosuite running time = " + toolEvosuite.getAvgTimeEvosuite() + " (ms)");
 			interruptThread(timeoutThread);
 			return 0;
 		} catch (CheckClasspathException e) {

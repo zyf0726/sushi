@@ -1,13 +1,22 @@
 package sushi.execution.evosuite;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import heapsyn.algo.Statement;
+import heapsyn.heap.ObjectH;
+import heapsyn.wrapper.symbolic.Specification;
 import sushi.Options;
 import sushi.exceptions.EvosuiteException;
+import sushi.exceptions.UnhandledInternalException;
 import sushi.execution.Coordinator;
 import sushi.execution.Tool;
 import sushi.execution.Worker;
@@ -23,10 +32,36 @@ public class Evosuite extends Tool<String[]> {
 	private final EvosuiteCoordinator evosuiteCoordinator;
 	private String commandLine;
 	private ArrayList<Integer> tasks = null;
+	
+	private RunHeapSyn heapsynRunner;
+	
+	public int getNumGeneratedTest() {
+		return this.evosuiteCoordinator.getNumberGeneratedTest();
+	}
+	
+	int numRunEvosuite = 0;
+	long totTimeEvosuite = 0;
+	
+	public int getNumRunEvosuite() {
+		return this.numRunEvosuite;
+	}
+	
+	public long getTotalTimeEvosuite() {
+		return this.totTimeEvosuite;
+	}
+	
+	public double getAvgTimeEvosuite() {
+		if (this.numRunEvosuite != 0) {
+			return (double) this.totTimeEvosuite / this.numRunEvosuite;
+		} else {
+			return -1.0;
+		}
+	}
 
 	public Evosuite(Options options) { 
 		this.options = options;
 		this.evosuiteCoordinator = new EvosuiteCoordinator(this, options);
+		this.heapsynRunner = this.options.getHeapSynRunner();
 	}
 
 	public String getCommandLine() {
@@ -167,21 +202,56 @@ public class Evosuite extends Tool<String[]> {
 
 		final StringBuilder optionPC = new StringBuilder("-Dpath_condition=");
 		boolean firstDone = false;
+		boolean needEvosuite = false;
 		for (int i = this.options.getNumMOSATargets() * taskNumber; i < Math.min(this.options.getNumMOSATargets() * (taskNumber + 1), targetMethodNumbers.size()); ++i) {
-			if (firstDone) {
-				optionPC.append(":");
-			} else {
-				firstDone = true;
-			}
 			final int targetMethodNumber_i = targetMethodNumbers.get(i).intValue();
 			final int traceNumberLocal_i = traceNumbersLocal.get(i).intValue();
 			final String targetMethodSignature_i = targetMethodSignatures.get(targetMethodNumber_i);
-			optionPC.append(targetClassName + "," + targetMethodSignature_i + "," + DirectoryUtils.getJBSEOutClassQualified(this.options, targetMethodNumber_i, traceNumberLocal_i));
+			Path sof = DirectoryUtils.getTmpDirPath(this.options).resolve(DirectoryUtils.getSpecOutFilePath(this.options, targetMethodNumber_i, traceNumberLocal_i));
+			Path tof = DirectoryUtils.getTmpDirPath(this.options).resolve(DirectoryUtils.getTestOutFilePath(this.options, targetMethodNumber_i, traceNumberLocal_i));
+			final Specification spec;
+			final ObjectH[] args;
+			try {
+				FileInputStream fis = new FileInputStream(sof.toString());
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				spec = (Specification) ois.readObject();
+				args = (ObjectH[]) ois.readObject();
+				ois.close();
+				fis.close();
+				final List<Statement> stmts;
+				if (this.heapsynRunner != null) {
+					logger.debug("Task " + taskNumber + ": [" + this.heapsynRunner.getNumRun() +
+							"] invoking HeapSyn to generate a test for " +
+							DirectoryUtils.getSpecOutFilePath(this.options, targetMethodNumber_i, traceNumberLocal_i));
+					stmts = this.heapsynRunner.generateTest(spec, args);					
+				} else {
+					stmts = null;
+				}
+				if (stmts != null) {
+					Statement.printStatements(stmts, new PrintStream(new FileOutputStream(tof.toString())));
+					this.evosuiteCoordinator.onHeapSynTestGenerated(taskNumber, targetMethodNumber_i, traceNumberLocal_i);
+				} else if (this.heapsynRunner == null || this.heapsynRunner.useEvosuiteIfFailed()) {
+					needEvosuite = true;
+					if (firstDone) {
+						optionPC.append(":");
+					} else {
+						firstDone = true;
+					}
+					optionPC.append(targetClassName + "," + targetMethodSignature_i + "," + DirectoryUtils.getJBSEOutClassQualified(this.options, targetMethodNumber_i, traceNumberLocal_i));
+				}
+			} catch (IOException | NullPointerException | ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				// e.printStackTrace();
+				throw new UnhandledInternalException(e);
+			} 
 		}
-		evo.add(optionPC.toString());
-		this.commandLine += " " + optionPC.toString();
-
-		return evo.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+		if (needEvosuite) {
+			evo.add(optionPC.toString());
+			this.commandLine += " " + optionPC.toString();
+			return evo.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+		} else {
+			return null;
+		}
 	}
 	
 	private String getClassPath() {

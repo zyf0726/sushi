@@ -73,6 +73,8 @@ public abstract class JBSEAbstract extends Tool<JBSEParameters> {
 		p.setStateFormatMode(this.emitWrappers ? StateFormatMode.SUSHI_PATH_CONDITION : null);
 		p.setMustLogCoverageData(this.mustLogCoverageData);
 		p.setWrapperFilePathBuilder((t1, t2) -> DirectoryUtils.getJBSEOutFilePath(this.options, t1, t2));
+		p.setSpecFilePathBuilder((t1, t2) -> DirectoryUtils.getSpecOutFilePath(this.options, t1, t2));
+		p.setOutFilePathBuilder((t1, t2) -> DirectoryUtils.getTestOutFilePath(this.options, t1, t2));
 		p.setCoverageFilePathBuilder((t) -> DirectoryUtils.getCoverageFilePath(this.options, t));
 		p.setBranchesFilePathBuilder((t) -> DirectoryUtils.getBranchesFilePath(this.options, t));
 		p.setTracesFilePathBuilder((t) -> DirectoryUtils.getTracesFilePath(this.options, t));

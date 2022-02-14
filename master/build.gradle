@@ -74,3 +74,8 @@ jar {
                    'Implementation-Version': archiveVersion
     }
 }
+
+dependencies {
+	implementation files("${rootDir}/libs/com.microsoft.z3.jar")
+	implementation files("${rootDir}/libs/HeapSyn-0.10.0-SNAPSHOT-all.jar")
+}

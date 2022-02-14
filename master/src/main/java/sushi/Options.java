@@ -16,6 +16,7 @@ import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.PathOptionHandler;
 import org.kohsuke.args4j.spi.PatternOptionHandler;
 
+import sushi.execution.evosuite.RunHeapSyn;
 import sushi.optionhandlers.HeapScopeOptionHandler;
 import sushi.optionhandlers.MultiPathOptionHandlerPatched;
 import sushi.optionhandlers.MultiSignatureOptionHandler;
@@ -215,6 +216,18 @@ public final class Options {
 			handler = RewritersOptionHandler.class)
 	private EnumSet<Rewriter> rewriters = EnumSet.noneOf(Rewriter.class);
 	
+// MODI BEGIN
+	private RunHeapSyn heapsynRunner;
+	
+	public void setHeapSynRunner(RunHeapSyn runner) {
+		this.heapsynRunner = runner;
+	}
+	
+	public RunHeapSyn getHeapSynRunner() {
+		return this.heapsynRunner;
+	}
+// MODI END
+
 	public boolean isConsistent() {
 		if (this.paramsClass == null &&
 			this.targetClassSignature == null &&

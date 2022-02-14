@@ -10,8 +10,12 @@ import sushi.logging.Logger;
 public final class DirectoryUtils {
 	private static final Logger logger = new Logger(DirectoryUtils.class);
 
-	public static final String jbseGeneratedOutClass = "EvoSuiteWrapper";
+	private static final String jbseGeneratedOutClass = "EvoSuiteWrapper";
+	private static final String specGeneratedOutClass = "HeapSynSpec";
+	private static final String testGeneratedOutClass = "HeapSynTest";
 	private static final String javaSourceExtension = ".java"; 
+	private static final String specExtension = ".spec";
+	private static final String textExtension = ".txt";
 	private static final String methodsFileName = "methods.txt"; 
 	private static final String branchesFileName = "branches.txt";
 	private static final String branchesFileNamePattern = "branches_$.txt";
@@ -41,6 +45,14 @@ public final class DirectoryUtils {
 	public static String getJBSEOutClass(long targetMethodNumber, long traceNumberLocal) {
 		return jbseGeneratedOutClass + "_" + targetMethodNumber + "_" + traceNumberLocal;
 	}
+	
+	public static String getSpecOutClass(long targetMethodNumber, long traceNumberLocal) {
+		return specGeneratedOutClass + "_" + targetMethodNumber + "_" + traceNumberLocal;
+	}
+	
+	public static String getTestOutClass(long targetMethodNumber, long traceNumberLocal) {
+		return testGeneratedOutClass + "_" + targetMethodNumber + "_" + traceNumberLocal;
+	}
 
 	public static String getJBSEOutClassQualified(Options options, long targetMethodNumber, long traceNumberLocal) {
 		final String targetClass = (options.getTargetClass() == null ? options.getTargetMethod().get(0) : options.getTargetClass()); 
@@ -48,10 +60,25 @@ public final class DirectoryUtils {
 		final String targetClassPackageName = (endOfPackageNameIndex == -1 ? "" : (targetClass.substring(0, endOfPackageNameIndex) + ".")).replace('/', '.');
 		return targetClassPackageName + getJBSEOutClass(targetMethodNumber, traceNumberLocal);
 	}
+	
+	public String getSpecOutClassQualified(Options options, long targetMethodNumber, long traceNumberLocal) {
+		final String targetClass = (options.getTargetClass() == null ? options.getTargetMethod().get(0) : options.getTargetClass()); 
+		final int endOfPackageNameIndex = targetClass.lastIndexOf('/');
+		final String targetClassPackageName = (endOfPackageNameIndex == -1 ? "" : (targetClass.substring(0, endOfPackageNameIndex) + ".")).replace('/', '.');
+		return targetClassPackageName + getSpecOutClass(targetMethodNumber, traceNumberLocal);
+	}
 
 	public static Path getJBSEOutFilePath(Options options, long targetMethodNumber, long traceNumberLocal) {
 		return getJBSEOutDirPath(options).resolve(getJBSEOutClass(targetMethodNumber, traceNumberLocal) + javaSourceExtension);
-	}	
+	}
+	
+	public static Path getSpecOutFilePath(Options options, long targetMethodNumber, long traceNumberLocal) {
+		return getJBSEOutDirPath(options).resolve(getSpecOutClass(targetMethodNumber, traceNumberLocal) + specExtension);
+	}
+	
+	public static Path getTestOutFilePath(Options options, long targetMethodNumber, long traceNumberLocal) {
+		return getJBSEOutDirPath(options).resolve(getTestOutClass(targetMethodNumber, traceNumberLocal) + textExtension);
+	}
 	
 	public static Path getTmpDirPath(Options options) {
 		return options.getTmpDirectoryBase().resolve(options.getTmpDirectoryName());

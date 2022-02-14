@@ -9,7 +9,9 @@ import static jbse.common.Type.REFERENCE;
 import static jbse.common.Type.TYPEEND;
 
 import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
+import heapsyn.wrapper.symbolic.Specification;
 import jbse.algo.exc.CannotManageStateException;
 import jbse.algo.exc.NotYetImplementedException;
 import jbse.apps.run.CannotBuildCalculatorException;
@@ -74,6 +77,7 @@ import jbse.val.ReferenceSymbolic;
 import jbse.val.Rewriter;
 import jbse.val.Simplex;
 import jbse.val.Value;
+import sushi.exceptions.UnhandledInternalException;
 import sushi.execution.jbse.JBSEParameters.DecisionProcedureCreationStrategy;
 import sushi.execution.jbse.JBSEParameters.StateFormatMode;
 import sushi.execution.jbse.JBSEParameters.TraceTypes;
@@ -383,6 +387,23 @@ public class RunJBSE_Sushi {
 				
 				final StateFormatMode stateFormatMode = RunJBSE_Sushi.this.parameters.getStateFormatMode();
 				if (stateFormatMode != null) {
+					// MODI BEGIN
+					final Path sf = RunJBSE_Sushi.this.parameters.getSpecFilePath(RunJBSE_Sushi.this.traceCounter);
+					StateTransSpec sts = new StateTransSpec();
+					Specification spec = sts.genSpec(currentState);
+					try {
+						FileOutputStream fos = new FileOutputStream(sf.toString());
+						ObjectOutputStream oos = new ObjectOutputStream(fos);
+						oos.writeObject(spec);
+						oos.writeObject(sts.args);
+						oos.close();
+						fos.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						// e.printStackTrace();
+						throw new UnhandledInternalException(e);
+					}
+					// MODI END
 					//emits the wrapper
 					final Path f =  RunJBSE_Sushi.this.parameters.getWrapperFilePath(RunJBSE_Sushi.this.traceCounter);
 					try (final BufferedWriter w = Files.newBufferedWriter(f)) {

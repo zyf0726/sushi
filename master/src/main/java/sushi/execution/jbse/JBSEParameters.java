@@ -190,6 +190,8 @@ final class JBSEParameters implements Cloneable {
 	
 	/** The builder function for the wrapper file path. */
 	private BiFunction<Long, Long, Path> wrapperFilePathBuilder = null;
+	private BiFunction<Long, Long, Path> specFilePathBuilder = null;
+	private BiFunction<Long, Long, Path> outFilePathBuilder = null;
 
 	/** The builder function for the coverage file path. */
 	private Function<Long, Path> coverageFilePathBuilder = null;
@@ -380,6 +382,14 @@ final class JBSEParameters implements Cloneable {
 		return this.wrapperFilePathBuilder.apply(this.methodNumber, localTraceNumber);
 	}
 	
+	public Path getSpecFilePath(long localTraceNumber) {
+		return this.specFilePathBuilder.apply(this.methodNumber, localTraceNumber);
+	}
+	
+	public Path getOutFilePath(long localTraceNumber) {
+		return this.outFilePathBuilder.apply(this.methodNumber, localTraceNumber);
+	}
+	
 	/**
 	 * Sets the path of the wrapper file.
 	 * 
@@ -393,6 +403,20 @@ final class JBSEParameters implements Cloneable {
 			throw new NullPointerException();
 		}
 		this.wrapperFilePathBuilder = wrapperFilePathBuilder;
+	}
+	
+	public void setSpecFilePathBuilder(BiFunction<Long, Long, Path> specFilePathBuilder) {
+		if (specFilePathBuilder == null) {
+			throw new NullPointerException();
+		}
+		this.specFilePathBuilder = specFilePathBuilder;
+	}
+	
+	public void setOutFilePathBuilder(BiFunction<Long, Long, Path> outFilePathBuilder) {
+		if (outFilePathBuilder == null) {
+			throw new NullPointerException();
+		}
+		this.outFilePathBuilder = outFilePathBuilder;
 	}
 	
 	/**
