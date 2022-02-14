@@ -24,6 +24,7 @@ import sushi.execution.ExecutionResult;
 import sushi.execution.Tool;
 import sushi.execution.bestpath.BestPath;
 import sushi.execution.evosuite.Evosuite;
+import sushi.execution.evosuite.RunHeapSyn;
 import sushi.execution.javac.Javac;
 import sushi.execution.jbse.JBSEMethods;
 import sushi.execution.jbse.JBSETraces;
@@ -87,10 +88,15 @@ public class Main {
 			doMainToolsLoop(logger, tools, repeatFrom, doEverything);
 			
 			long elapsed = System.currentTimeMillis() - start;
+			RunHeapSyn runner = this.options.getHeapSynRunner();
 			logger.info(getName() + " terminates, elapsed " + elapsed/1000.0 + " seconds");
 			logger.info("statistics: number of generated test = " + toolEvosuite.getNumGeneratedTest());
 			logger.info("statistics: number of Evosuite run = " + toolEvosuite.getNumRunEvosuite());
 			logger.info("statistics: average Evosuite running time = " + toolEvosuite.getAvgTimeEvosuite() + " (ms)");
+			logger.info("statistics: number of HeapSyn run (successful) = " + runner.getNumSuccRun());
+			logger.info("statistics: number of HeapSyn run (failed) = " + runner.getNumFailRun());
+			logger.info("statistics: average HeapSyn running time (successful) = " + runner.getAvgSuccTime() + " (ms)");
+			logger.info("statistics: average HeapSyn running time (failed) = " + runner.getAvgFailTime() + " (ms)");
 			interruptThread(timeoutThread);
 			return 0;
 		} catch (CheckClasspathException e) {

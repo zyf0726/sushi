@@ -4,16 +4,23 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import heapsyn.algo.DynamicGraphBuilder;
 import heapsyn.algo.Statement;
 import heapsyn.algo.TestGenerator;
 import heapsyn.algo.WrappedHeap;
 import heapsyn.heap.ObjectH;
+import heapsyn.heap.SymbolicHeap;
+import heapsyn.heap.SymbolicHeapAsDigraph;
+import heapsyn.smtlib.ExistExpr;
 import heapsyn.wrapper.symbolic.Specification;
+import heapsyn.wrapper.symbolic.SymbolicExecutor;
+import heapsyn.wrapper.symbolic.SymbolicExecutorWithCachedJBSE;
 import sushi.logging.Logger;
 
-public abstract class RunHeapSyn {
+public class RunHeapSyn {
 	
 	private static final Logger logger = new Logger(RunHeapSyn.class);
 	
@@ -23,19 +30,33 @@ public abstract class RunHeapSyn {
 	private long totTimeFail, totTimeSucc;
 	private int numRunFail, numRunSucc;
 	
-	public RunHeapSyn() {
+	public RunHeapSyn(HeapSynParameters p) {
 		this.totTimeFail = this.totTimeSucc = 0;
 		this.numRunFail = this.numRunSucc = 0;
-		logger.debug("building heap transformation graph");
+		logger.info("building heap transformation graph for " + p.getTargetClass());
 		long start = System.currentTimeMillis();
-		List<WrappedHeap> heaps = this.buildGraph();
+		List<WrappedHeap> heaps = this.buildGraph(p);
 		long elapsed = System.currentTimeMillis() - start;
-		logger.debug("heap transformation graph built, elapsed " + elapsed/1000 + " seconds");
+		logger.info("heap transformation graph built, elapsed " + elapsed/1000 + " seconds");
 		this.testGenerator = new TestGenerator(heaps);
 		this.timeBuildGraph = elapsed;
 	}
 	
-	abstract protected List<WrappedHeap> buildGraph();
+	private List<WrappedHeap> buildGraph(HeapSynParameters p) {
+		SymbolicExecutor executor = new SymbolicExecutorWithCachedJBSE(
+				p.getFieldFilter());
+		DynamicGraphBuilder gb = new DynamicGraphBuilder(
+				executor, getPublicMethods(p.getTargetClass()));
+		for (Entry<Class<?>, Integer> entry : p.getHeapScope().entrySet()) {
+			Class<?> cls = entry.getKey();
+			int scope = entry.getValue();
+			logger.info("set heap scope of " + cls + " to " + scope);
+			gb.setHeapScope(entry.getKey(), entry.getValue());
+		}
+		SymbolicHeap initHeap = new SymbolicHeapAsDigraph(ExistExpr.ALWAYS_TRUE);
+		List<WrappedHeap> heaps = gb.buildGraph(initHeap, p.getMaxSeqLength());
+		return heaps;
+	}
 	
 	public final boolean useEvosuiteIfFailed() {
 		return false;
@@ -48,11 +69,11 @@ public abstract class RunHeapSyn {
 		if (stmts == null) { // failed
 			numRunFail += 1;
 			totTimeFail += elapsed;
-			logger.debug("generate failed, elapsed " + elapsed + " milliseconds");
+			logger.debug("HeapSyn: generate failed, elapsed " + elapsed + " milliseconds");
 		} else { // successful
 			numRunSucc += 1;
 			totTimeSucc += elapsed;
-			logger.debug("generate successfully, elpased " + elapsed + " milliseconds");
+			logger.debug("HeapSyn: generate successfully, elpased " + elapsed + " milliseconds");
 		}
 		return stmts;
 	}
@@ -101,24 +122,23 @@ public abstract class RunHeapSyn {
 		return this.numRunFail + this.numRunSucc;
 	}
 	
-	protected static List<Method> getPublicMethods(String clsName)
-			throws NoSuchMethodException, ClassNotFoundException {
-		Class<?> cls = Class.forName(clsName);
+	private static List<Method> getPublicMethods(Class<?> cls) {
 		List<Method> decMethods = Arrays.asList(cls.getDeclaredMethods());
 		List<Method> pubMethods = Arrays.asList(cls.getMethods());
 		List<Method> methods = decMethods.stream()
 				.filter(m -> pubMethods.contains(m))
 				.collect(Collectors.toList());
-		System.out.println("public methods (" + clsName + "):");
 		for (Method m : methods) {
-			System.out.print("  " + m.getName() + "(");
+			StringBuilder message = new StringBuilder();
+			message.append(m.getName() + "(");
 			AnnotatedType[] paraTypes = m.getAnnotatedParameterTypes();
 			for (int i = 0; i < paraTypes.length; ++i) {
-				System.out.print(paraTypes[i].getType().getTypeName());
+				message.append(paraTypes[i].getType().getTypeName());
 				if (i < paraTypes.length - 1)
-					System.out.print(", ");
+					message.append(", ");
 			}
-			System.out.println(")");
+			message.append(")");
+			logger.info("found a public method " + message.toString());
 		}
 		return methods;
 	}

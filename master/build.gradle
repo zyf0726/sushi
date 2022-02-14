@@ -6,6 +6,7 @@ plugins {
 
 def glpkJavaVersion = '1.11.0'
 def glpkJavaJniLocation = 'C:/Program Files/glpk-4.64/w64/'
+def z3JavaLibLocation = 'D:/Tools/z3-4.8.10-x64-win/bin/'
 def javaHome = javaToolchains.compilerFor { languageVersion = javaVersion }.get().metadata.installationPath.asFile.toString()
 
 repositories {
@@ -57,7 +58,7 @@ eclipse {
 	        whenMerged { cp ->
 	        	def entries = cp.getEntries()
 	            def container = entries.find { it.path == 'org.eclipse.buildship.core.gradleclasspathcontainer' }
-	            container.nativeLibraryLocation = glpkJavaJniLocation
+	            container.nativeLibraryLocation = glpkJavaJniLocation + ';' + z3JavaLibLocation
 	        }
         }
     }
@@ -76,6 +77,5 @@ jar {
 }
 
 dependencies {
-	implementation files("${rootDir}/libs/com.microsoft.z3.jar")
 	implementation files("${rootDir}/libs/HeapSyn-0.10.0-SNAPSHOT-all.jar")
 }

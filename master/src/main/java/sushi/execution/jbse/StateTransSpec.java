@@ -15,7 +15,7 @@ import java.util.TreeMap;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
-import heapSyn.jbse.val.PrimitiveSymbolic;
+import heapsyn.jbse.val.PrimitiveSymbolic;
 import heapsyn.common.exceptions.UnhandledJBSEPrimitive;
 import heapsyn.common.exceptions.UnhandledJBSEValue;
 import heapsyn.common.exceptions.UnsupportedPrimitiveType;
