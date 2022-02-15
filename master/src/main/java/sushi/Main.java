@@ -59,11 +59,6 @@ public class Main {
 
 			checkPrerequisites(logger);
 			
-			RunHeapSyn heapsyn = this.options.getHeapSynRunner();
-			if (heapsyn != null) {
-				heapsyn.init();
-			}
-
 			final Tool<?>[] tools;
 			final int repeatFrom;
 			final Evosuite toolEvosuite = new Evosuite(this.options);
@@ -89,6 +84,11 @@ public class Main {
 			final boolean doEverything = (this.options.getPhases() == null);
 
 			timeoutThread = makeGlobalTimeoutThread();
+			
+			RunHeapSyn heapsyn = this.options.getHeapSynRunner();
+			if (heapsyn != null) {
+				heapsyn.init();
+			}
 
 			doMainToolsLoop(logger, tools, repeatFrom, doEverything);
 			
