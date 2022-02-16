@@ -74,7 +74,13 @@ public class RunHeapSyn {
 	
 	public synchronized final List<Statement> generateTest(Specification spec, ObjectH... args) {
 		long start = System.currentTimeMillis();
-		List<Statement> stmts = testGenerator.generateTestWithSpec(spec, args);
+		final List<Statement> stmts;
+		if (spec != null) {
+			stmts = testGenerator.generateTestWithSpec(spec, args);
+		} else {
+			logger.warn("HeapSyn: null specification, skipped");
+			stmts = null;
+		}
 		long elapsed = System.currentTimeMillis() - start;
 		if (stmts == null) { // failed
 			numRunFail += 1;

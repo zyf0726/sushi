@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import heapsyn.jbse.val.PrimitiveSymbolic;
@@ -65,6 +66,12 @@ import jbse.val.WideningConversion;
 import sushi.exceptions.UnhandledInternalException;
 
 public class StateTransSpec {
+	
+	private static Predicate<String> fieldFilter;
+	
+	public static void setFieldFilter(Predicate<String> fieldFilter) {
+		StateTransSpec.fieldFilter = fieldFilter;
+	}
 	
 //	private Map<HeapObjekt, ObjectH> finjbseObjMap = new HashMap<>();
 //	private Map<Primitive, ObjectH> finjbseVarMap = new HashMap<>();
@@ -152,7 +159,8 @@ public class StateTransSpec {
 			}
 			//Field[] fields = javaClass.getFields();
 			for (Variable var : ok.fields().values()) {
-				if(var.getName().charAt(0)=='_'|| var.getName().equals("modCount")) continue; // || var.getName().equals("modCount")
+				if (!fieldFilter.test(var.getName())) continue;
+//				if(var.getName().charAt(0)=='_'|| var.getName().equals("modCount")) continue; // || var.getName().equals("modCount")
 				Field javaField=null;
 				try {
 					for(Field f:fieldList) {
@@ -411,7 +419,8 @@ public class StateTransSpec {
 		}
 		if(p instanceof PrimitiveSymbolicMemberField) {
 			PrimitiveSymbolicMemberField pfield=(PrimitiveSymbolicMemberField)p;
-			return pfield.getFieldName().charAt(0)=='_' | pfield.getFieldName().equals("modCount"); //| pfield.getFieldName().equals("modCount")
+			return !fieldFilter.test(pfield.getFieldName());
+//			return pfield.getFieldName().charAt(0)=='_' | pfield.getFieldName().equals("modCount"); //| pfield.getFieldName().equals("modCount")
 		}
 		else if(p instanceof Simplex) {
 			return false;
@@ -556,7 +565,8 @@ public class StateTransSpec {
 				if(ref instanceof ReferenceSymbolicMemberField) {
 					ReferenceSymbolicMemberField memberref=(ReferenceSymbolicMemberField) ref;
 					String fieldname=memberref.getFieldName();
-					if(fieldname.charAt(0)=='_' || fieldname.equals("modCount")) continue; //|| fieldname.equals("modCount")
+					if (!fieldFilter.test(fieldname)) continue;
+//					if(fieldname.charAt(0)=='_' || fieldname.equals("modCount")) continue; //|| fieldname.equals("modCount")
 				}
 				if(ref.getStaticType().equals("Ljava/lang/Object;")) {
 					objclause.add(clause);
