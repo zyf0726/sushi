@@ -95,8 +95,13 @@ public class Main {
 			long elapsed = System.currentTimeMillis() - start;
 			logger.info(getName() + " terminates, elapsed " + elapsed/1000.0 + " seconds");
 			logger.info("statistics: number of generated test = " + toolEvosuite.getNumGeneratedTest());
-			logger.info("statistics: number of Evosuite run = " + toolEvosuite.getNumRunEvosuite());
-			logger.info("statistics: average Evosuite running time = " + toolEvosuite.getAvgTimeEvosuite() + " (ms)");
+			if (this.options.getCoverage() == Coverage.BRANCHES) {
+				logger.info("statistics: number of covered branches = " + toolEvosuite.getNumGlobalCoveredBranches());
+			}
+			if (toolEvosuite.getNumRunEvosuite() > 0) {
+				logger.info("statistics: number of Evosuite run = " + toolEvosuite.getNumRunEvosuite());
+				logger.info("statistics: average Evosuite running time = " + toolEvosuite.getAvgTimeEvosuite() + " (ms)");
+			}
 			if (heapsyn != null) {
 				logger.info("statistics: number of HeapSyn run (successful) = " + heapsyn.getNumSuccRun());
 				logger.info("statistics: number of HeapSyn run (failed) = " + heapsyn.getNumFailRun());

@@ -41,6 +41,12 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 		return this.numGeneratedTest;
 	}
 	
+	private final HashSet<Integer> globalCoveredBranches = new HashSet<>();
+	
+	public int getNumberGlobalCoveredBranches() {
+		return this.globalCoveredBranches.size();
+	}
+	
 	public EvosuiteCoordinator(Tool<?> tool, Options options) { 
 		super(tool);
 		this.options = options;
@@ -86,6 +92,7 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 		}
 		
 		this.coveredBranches.removeAll(this.branchesToIgnore);
+		this.globalCoveredBranches.addAll(this.coveredBranches);
 		try (final BufferedWriter w = Files.newBufferedWriter(DirectoryUtils.getCoveredByTestFilePath(this.options))) {
 			for (Integer branch : this.coveredBranches) {
 				w.write(branch.toString());

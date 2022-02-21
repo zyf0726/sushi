@@ -39,6 +39,10 @@ public class Evosuite extends Tool<String[]> {
 		return this.evosuiteCoordinator.getNumberGeneratedTest();
 	}
 	
+	public int getNumGlobalCoveredBranches() {
+		return this.evosuiteCoordinator.getNumberGlobalCoveredBranches();
+	}
+	
 	int numRunEvosuite = 0;
 	long totTimeEvosuite = 0;
 	
