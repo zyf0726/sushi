@@ -67,7 +67,7 @@ import sushi.exceptions.UnhandledInternalException;
 
 public class StateTransSpec {
 	
-	private static Predicate<String> fieldFilter;
+	private static Predicate<String> fieldFilter = (name -> true);
 	
 	public static void setFieldFilter(Predicate<String> fieldFilter) {
 		StateTransSpec.fieldFilter = fieldFilter;
@@ -413,7 +413,7 @@ public class StateTransSpec {
 		return new BoolConst(true);
 	}
 	
-	private boolean toIgnore(Primitive p) {
+/*	private boolean toIgnore(Primitive p) {
 		if(p instanceof PrimitiveSymbolicLocalVariable) {
 			return false;
 		}
@@ -443,6 +443,7 @@ public class StateTransSpec {
 			throw new UnhandledJBSEPrimitive(p.getClass().getName());
 		}
 	}
+*/
 	
 	private boolean isObj(ObjectH obj) {
 		return obj.getClassH().getJavaClass()==Object.class;
@@ -558,16 +559,17 @@ public class StateTransSpec {
 		for(int i=0;i<clauses.size();++i) {
 			Clause clause=clauses.get(i);
 			if(clause instanceof ClauseAssume) {
-				if(!toIgnore(((ClauseAssume)clause).getCondition())) primclause.add(clause);
+				// if(!toIgnore(((ClauseAssume)clause).getCondition()))
+				primclause.add(clause);
 			}
 			else if(clause instanceof ClauseAssumeReferenceSymbolic) {
 				ReferenceSymbolic ref=((ClauseAssumeReferenceSymbolic)clause).getReference();
-				if(ref instanceof ReferenceSymbolicMemberField) {
-					ReferenceSymbolicMemberField memberref=(ReferenceSymbolicMemberField) ref;
-					String fieldname=memberref.getFieldName();
-					if (!fieldFilter.test(fieldname)) continue;
+//				if(ref instanceof ReferenceSymbolicMemberField) {
+//					ReferenceSymbolicMemberField memberref=(ReferenceSymbolicMemberField) ref;
+//					String fieldname=memberref.getFieldName();
+//					if (!fieldFilter.test(fieldname)) continue;
 //					if(fieldname.charAt(0)=='_' || fieldname.equals("modCount")) continue; //|| fieldname.equals("modCount")
-				}
+//				}
 				if(ref.getStaticType().equals("Ljava/lang/Object;")) {
 					objclause.add(clause);
 					continue;
