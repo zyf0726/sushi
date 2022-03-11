@@ -216,14 +216,14 @@ public class Evosuite extends Tool<String[]> {
 			final Specification spec;
 			final ObjectH[] args;
 			try {
-				FileInputStream fis = new FileInputStream(sof.toString());
-				ObjectInputStream ois = new ObjectInputStream(fis);
-				spec = (Specification) ois.readObject();
-				args = (ObjectH[]) ois.readObject();
-				ois.close();
-				fis.close();
 				final List<Statement> stmts;
 				if (this.heapsynRunner != null) {
+					FileInputStream fis = new FileInputStream(sof.toString());
+					ObjectInputStream ois = new ObjectInputStream(fis);
+					spec = (Specification) ois.readObject();
+					args = (ObjectH[]) ois.readObject();
+					ois.close();
+					fis.close();
 					logger.debug("Task " + taskNumber + ": [" + this.heapsynRunner.getNumRun() +
 							"] invoking HeapSyn to generate a test for " +
 							DirectoryUtils.getSpecOutFilePath(this.options, targetMethodNumber_i, traceNumberLocal_i));

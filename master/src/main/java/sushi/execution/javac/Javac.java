@@ -34,6 +34,8 @@ public final class Javac extends Tool<String[]> {
 	
 	@Override
 	public List<Integer> tasks() {
+		if (this.options.getHeapSynRunner() != null)
+			return new ArrayList<>();
 		if (this.tasks == null) {
 			this.tasks = new ArrayList<>();
 			this.targetMethodNumbers = new ArrayList<>();

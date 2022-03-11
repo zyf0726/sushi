@@ -1534,4 +1534,24 @@ final class JBSEParameters implements Cloneable {
 		o.tracesToShow = this.tracesToShow.clone();
 		return o;
 	}
+	
+	private boolean emitEvosuiteWrapper = false;
+	private boolean emitSpec = false;
+	
+	public void setEmitEvosuiteWrapper(boolean emitEvosuiteWrapper) {
+		this.emitEvosuiteWrapper = emitEvosuiteWrapper;
+	}
+	
+	public boolean isEmitEvosuiteWrapper() {
+		return emitEvosuiteWrapper;
+	}
+	
+	public void setEmitSpec(boolean emitSpec) {
+		this.emitSpec = emitSpec;
+	}
+	
+	public boolean isEmitSpec() {
+		return emitSpec;
+	}
+	
 }

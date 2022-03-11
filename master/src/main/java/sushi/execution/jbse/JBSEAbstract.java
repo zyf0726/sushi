@@ -101,6 +101,9 @@ public abstract class JBSEAbstract extends Tool<JBSEParameters> {
 		p.setDoSignAnalysis(this.options.getDoSignAnalysis());
 		p.setDoEqualityAnalysis(this.options.getDoEqualityAnalysis());
 		setRewriters(this.options.getRewriters(), p);
+		
+		p.setEmitEvosuiteWrapper(this.options.getHeapSynRunner() == null);
+		p.setEmitSpec(this.options.getHeapSynRunner() != null);
 		return p;
 	}
 	

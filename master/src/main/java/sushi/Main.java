@@ -68,11 +68,11 @@ public class Main {
 				repeatFrom = -1;
 				break;
 			case UNSAFE:
-				tools = new Tool[]{ new JBSEMethods(this.options, false), new Merger(this.options), new BestPath(this.options), new JBSETraces(this.options), new Javac(this.options), toolEvosuite, new LoopEnd() };
+				tools = new Tool[]{ new JBSEMethods(this.options, true), new Merger(this.options), new ListPaths(this.options), new Javac(this.options), toolEvosuite, new LoopEnd() };
 				repeatFrom = -1;
 				break;
 			case BRANCHES:
-				tools = new Tool[]{ new JBSEMethods(this.options, false), new Merger(this.options), new Minimizer(this.options), new JBSETraces(this.options), new Javac(this.options), toolEvosuite, new LoopMgr(this.options) };
+				tools = new Tool[]{ new JBSEMethods(this.options, true), new Merger(this.options), new Minimizer(this.options), new Javac(this.options), toolEvosuite, new LoopMgr(this.options) };
 				repeatFrom = 2;
 				break;
 			default:

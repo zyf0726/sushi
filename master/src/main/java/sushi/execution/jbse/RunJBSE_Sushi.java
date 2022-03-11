@@ -387,38 +387,42 @@ public class RunJBSE_Sushi {
 				
 				final StateFormatMode stateFormatMode = RunJBSE_Sushi.this.parameters.getStateFormatMode();
 				if (stateFormatMode != null) {
+					//emits the wrapper
+					if (RunJBSE_Sushi.this.parameters.isEmitEvosuiteWrapper()) {
+						final Path f =  RunJBSE_Sushi.this.parameters.getWrapperFilePath(RunJBSE_Sushi.this.traceCounter);
+						try (final BufferedWriter w = Files.newBufferedWriter(f)) {
+							RunJBSE_Sushi.this.formatter.setStringsConstant(this.stringLiteralsCurrentTrace);
+							RunJBSE_Sushi.this.formatter.formatPrologue();
+							RunJBSE_Sushi.this.formatter.formatState(currentState);
+							RunJBSE_Sushi.this.formatter.formatEpilogue();
+							w.write(RunJBSE_Sushi.this.formatter.emit());
+							RunJBSE_Sushi.this.formatter.cleanup();
+						} catch (IOException e) {
+							System.err.println("ERROR: exception raised:");
+							e.printStackTrace(System.err);
+							RunJBSE_Sushi.this.errorCodeAfterRun = 1;
+							return true;
+						}
+					}
 					// MODI BEGIN
-					final Path sf = RunJBSE_Sushi.this.parameters.getSpecFilePath(RunJBSE_Sushi.this.traceCounter);
-					StateTransSpec sts = new StateTransSpec();
-					Specification spec = sts.genSpec(currentState);
-					try {
-						FileOutputStream fos = new FileOutputStream(sf.toString());
-						ObjectOutputStream oos = new ObjectOutputStream(fos);
-						oos.writeObject(spec);
-						oos.writeObject(sts.args);
-						oos.close();
-						fos.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						// e.printStackTrace();
-						throw new UnhandledInternalException(e);
+					if (RunJBSE_Sushi.this.parameters.isEmitSpec()) {
+						final Path sf = RunJBSE_Sushi.this.parameters.getSpecFilePath(RunJBSE_Sushi.this.traceCounter);
+						StateTransSpec sts = new StateTransSpec();
+						Specification spec = sts.genSpec(currentState);
+						try {
+							FileOutputStream fos = new FileOutputStream(sf.toString());
+							ObjectOutputStream oos = new ObjectOutputStream(fos);
+							oos.writeObject(spec);
+							oos.writeObject(sts.args);
+							oos.close();
+							fos.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							// e.printStackTrace();
+							throw new UnhandledInternalException(e);
+						}
 					}
 					// MODI END
-					//emits the wrapper
-					final Path f =  RunJBSE_Sushi.this.parameters.getWrapperFilePath(RunJBSE_Sushi.this.traceCounter);
-					try (final BufferedWriter w = Files.newBufferedWriter(f)) {
-						RunJBSE_Sushi.this.formatter.setStringsConstant(this.stringLiteralsCurrentTrace);
-						RunJBSE_Sushi.this.formatter.formatPrologue();
-						RunJBSE_Sushi.this.formatter.formatState(currentState);
-						RunJBSE_Sushi.this.formatter.formatEpilogue();
-				        w.write(RunJBSE_Sushi.this.formatter.emit());
-				        RunJBSE_Sushi.this.formatter.cleanup();
-					} catch (IOException e) {
-						System.err.println("ERROR: exception raised:");
-						e.printStackTrace(System.err);
-						RunJBSE_Sushi.this.errorCodeAfterRun = 1;
-						return true;
-					}
 				}
 				
 				//updates the coverage and traces files

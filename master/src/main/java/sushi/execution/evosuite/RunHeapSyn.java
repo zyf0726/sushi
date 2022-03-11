@@ -1,5 +1,7 @@
 package sushi.execution.evosuite;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -24,6 +26,12 @@ public class RunHeapSyn {
 	
 	private static final Logger logger = new Logger(RunHeapSyn.class);
 	
+	public static boolean DEBUG_MODE	= true;
+	
+	private final String TMP_DIR		= "tmp/";
+	private final String GRAPHOBJ_EXT	= ".graph";
+	private final String GRAPHTXT_EXT	= ".txt";
+	
 	private HeapSynParameters parameters;
 	
 	private TestGenerator testGenerator;
@@ -41,6 +49,17 @@ public class RunHeapSyn {
 	}
 	
 	private List<WrappedHeap> buildGraph(HeapSynParameters p) {
+		if (DEBUG_MODE == true) {
+			try {
+				List<WrappedHeap> heaps = WrappedHeap.importHeapsFrom(
+						TMP_DIR + p.getTargetClass().getName() + GRAPHOBJ_EXT);
+				logger.info("heap transformation graph imported");
+				return heaps;
+			} catch (IOException | ClassNotFoundException e) {
+				logger.info("import heap transformation graph failed: " + e.getMessage());
+			}
+		}
+		
 		logger.info("building heap transformation graph for " + p.getTargetClass());
 		long start = System.currentTimeMillis();
 		
@@ -60,6 +79,23 @@ public class RunHeapSyn {
 		long elapsed = System.currentTimeMillis() - start;
 		this.timeBuildGraph = elapsed;
 		logger.info("heap transformation graph built, elapsed " + elapsed/1000 + " seconds");
+		
+		if (DEBUG_MODE == true) {
+			try {
+				DynamicGraphBuilder.__debugPrintOut(heaps, executor,
+						new PrintStream(TMP_DIR + p.getTargetClass().getName() + GRAPHTXT_EXT));
+				logger.info("heap transofrmation graph printed");
+			} catch (IOException e) {
+				logger.info("print heap transformation graph failed :" + e.getMessage());
+			}
+			try {
+				WrappedHeap.exportHeapsTo(heaps, TMP_DIR + p.getTargetClass().getName() + GRAPHOBJ_EXT);
+				logger.info("heap transofrmation graph exported");
+			} catch (IOException e) {
+				logger.info("export heap transformation graph failed :" + e.getMessage());
+			}
+		}
+		
 		return heaps;
 	}
 	
