@@ -227,12 +227,13 @@ public class Evosuite extends Tool<String[]> {
 					logger.debug("Task " + taskNumber + ": [" + this.heapsynRunner.getNumRun() +
 							"] invoking HeapSyn to generate a test for " +
 							DirectoryUtils.getSpecOutFilePath(this.options, targetMethodNumber_i, traceNumberLocal_i));
-					stmts = this.heapsynRunner.generateTest(spec, args);					
+					stmts = this.heapsynRunner.generateTest(spec, args);
 				} else {
 					stmts = null;
 				}
 				if (stmts != null) {
-					Statement.printStatements(stmts, new PrintStream(new FileOutputStream(tof.toString())));
+					String methodUnderTest = targetMethodSignature_i.substring(0, targetMethodSignature_i.indexOf('('));
+					Statement.printStatements(stmts, methodUnderTest, new PrintStream(new FileOutputStream(tof.toString())));
 					this.evosuiteCoordinator.onHeapSynTestGenerated(taskNumber, targetMethodNumber_i, traceNumberLocal_i);
 				} else if (this.heapsynRunner == null || this.heapsynRunner.useEvosuiteIfFailed()) {
 					needEvosuite = true;
