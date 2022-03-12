@@ -192,6 +192,15 @@ public class RunHeapSyn {
 			message.append(")");
 			logger.debug("found a public method " + message.toString());
 		}
+		List<Class<?>> decClasses = Arrays.asList(cls.getDeclaredClasses());
+		List<Class<?>> pubClasses = Arrays.asList(cls.getClasses());
+		List<Class<?>> classes = decClasses.stream()
+				.filter(c -> pubClasses.contains(c))
+				.collect(Collectors.toList());
+		for (Class<?> c : classes) {
+			logger.debug("found a public inner class " + c.getName());
+			methods.addAll(getPublicMethods(c));
+		}
 		return methods;
 	}
 	
