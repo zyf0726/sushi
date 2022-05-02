@@ -98,15 +98,17 @@ public class Main {
 			if (this.options.getCoverage() == Coverage.BRANCHES) {
 				logger.info("statistics: number of covered branches = " + toolEvosuite.getNumGlobalCoveredBranches());
 			}
-			if (toolEvosuite.getNumRunEvosuite() > 0) {
-				logger.info("statistics: number of Evosuite run = " + toolEvosuite.getNumRunEvosuite());
-				logger.info("statistics: average Evosuite running time = " + toolEvosuite.getAvgTimeEvosuite() + " (ms)");
+			if (toolEvosuite.getNumRun() > 0) {
+				logger.info("statistics: number of Evosuite run (successful) = " + toolEvosuite.getNumSuccRun());
+				logger.info("statistics: number of Evosuite run (failed) = " + toolEvosuite.getNumFailRun());
+				logger.info("statistics: average Evosuite running time (successful) = " + toolEvosuite.getAvgSuccTime()/1000 + " (s)");
+				logger.info("statistics: average Evosuite running time (failed) = " + toolEvosuite.getAvgFailTime()/1000 + " (s)");
 			}
 			if (heapsyn != null) {
 				logger.info("statistics: number of HeapSyn run (successful) = " + heapsyn.getNumSuccRun());
 				logger.info("statistics: number of HeapSyn run (failed) = " + heapsyn.getNumFailRun());
-				logger.info("statistics: average HeapSyn running time (successful) = " + heapsyn.getAvgSuccTime() + " (ms)");
-				logger.info("statistics: average HeapSyn running time (failed) = " + heapsyn.getAvgFailTime() + " (ms)");
+				logger.info("statistics: average HeapSyn running time (successful) = " + heapsyn.getAvgSuccTime()/1000 + " (s)");
+				logger.info("statistics: average HeapSyn running time (failed) = " + heapsyn.getAvgFailTime()/1000 + " (s)");
 			}
 			interruptThread(timeoutThread);
 			return 0;

@@ -31,7 +31,7 @@ public class EvosuiteWorker extends Worker {
 			result.setExitStatus(0);
 			return result;
 		}
-		logger.debug("Task " + this.taskNumber + ": [" + (this.evosuite.numRunEvosuite++) + 
+		logger.debug("Task " + this.taskNumber + ": [" + this.evosuite.getNumRun() + 
 				"] invoking " + this.evosuite.getCommandLine());
 		
 		final Path logFilePath = DirectoryUtils.getTmpDirPath(this.options).resolve("evosuite-task-" + this.taskNumber + "-" + Thread.currentThread().getName() + ".log");		
@@ -45,7 +45,14 @@ public class EvosuiteWorker extends Worker {
 			td.start();
 			final int exitStatus = process.waitFor();
 			final long elapsed = System.currentTimeMillis() - start;
-			this.evosuite.totTimeEvosuite += elapsed;
+//			this.evosuite.totTimeEvosuite += elapsed;
+			if (elapsed / 1000 > this.evosuite.getTimeBudget()) {
+				this.evosuite.totTimeFail += elapsed;
+				++this.evosuite.numRunFail;
+			} else {
+				this.evosuite.totTimeSucc += elapsed;
+				++this.evosuite.numRunSucc;
+			}
 			logger.debug("Task " + this.taskNumber + " ended, elapsed " + elapsed/1000 + " seconds");
 			td.join();
 			final ExecutionResult result = new ExecutionResult();

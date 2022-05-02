@@ -43,6 +43,50 @@ public class Evosuite extends Tool<String[]> {
 		return this.evosuiteCoordinator.getNumberGlobalCoveredBranches();
 	}
 	
+	int numRunSucc = 0, numRunFail = 0;
+	long totTimeSucc = 0, totTimeFail = 0;
+	
+	public final long getTotalFailTime() {
+		return this.totTimeFail;
+	}
+	
+	public final long getTotalSuccTime() {
+		return this.totTimeSucc;
+	}
+	
+	public final double getAvgFailTime() {
+		if (this.numRunFail != 0) {
+			return (double) this.totTimeFail / this.numRunFail;
+		} else {
+			return -1000.0;
+		}
+	}
+	
+	public final double getAvgSuccTime() {
+		if (this.numRunSucc != 0) {
+			return (double) this.totTimeSucc / this.numRunSucc;
+		} else {
+			return -1000.0;
+		}
+	}
+	
+	public final long getTotalTime() {
+		return this.totTimeFail + this.totTimeSucc;
+	}
+	
+	public final int getNumFailRun() {
+		return this.numRunFail;
+	}
+	
+	public final int getNumSuccRun() {
+		return this.numRunSucc;
+	}
+	
+	public final int getNumRun() {
+		return this.numRunFail + this.numRunSucc;
+	}
+	
+/*
 	int numRunEvosuite = 0;
 	long totTimeEvosuite = 0;
 	
@@ -61,6 +105,7 @@ public class Evosuite extends Tool<String[]> {
 			return -1.0;
 		}
 	}
+*/
 
 	public Evosuite(Options options) { 
 		this.options = options;

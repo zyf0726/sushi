@@ -146,7 +146,7 @@ public class RunHeapSyn {
 		if (this.numRunFail != 0) {
 			return (double) this.totTimeFail / this.numRunFail;
 		} else {
-			return -1.0;
+			return -1000.0;
 		}
 	}
 	
@@ -154,7 +154,7 @@ public class RunHeapSyn {
 		if (this.numRunSucc != 0) {
 			return (double) this.totTimeSucc / this.numRunSucc;
 		} else {
-			return -1.0;
+			return -1000.0;
 		}
 	}
 	
