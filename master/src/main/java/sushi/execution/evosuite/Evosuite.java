@@ -269,6 +269,14 @@ public class Evosuite extends Tool<String[]> {
 					args = (ObjectH[]) ois.readObject();
 					ois.close();
 					fis.close();
+					while (!evosuiteCoordinator.checkPrepared(taskNumber, targetMethodNumber_i, traceNumberLocal_i)) {
+						try {
+							logger.warn("EvosuiteCoordinator not prepared, sleep 1000 milliseconds");
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							logger.warn("sleep interrupted");
+						}
+					}
 					logger.debug("Task " + taskNumber + ": [" + this.heapsynRunner.getNumRun() +
 							"] invoking HeapSyn to generate a test for " +
 							DirectoryUtils.getSpecOutFilePath(this.options, targetMethodNumber_i, traceNumberLocal_i));

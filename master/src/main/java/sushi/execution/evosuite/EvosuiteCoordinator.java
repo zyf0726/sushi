@@ -157,6 +157,7 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 	}
 	
 	private void loadMinimizerOutput() throws IOException, NumberFormatException {
+//		System.out.println("loadMinimizerOutput " + options.getMinimizerBudget());
 		this.minimizerOutput = new ArrayList<>();
 		try (final BufferedReader r = Files.newBufferedReader(DirectoryUtils.getMinimizerOutFilePath(this.options))) {
 			String line;
@@ -167,8 +168,12 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 				row[1] = Integer.parseInt(fields[1].trim()); //method number				
 				row[2] = Integer.parseInt(fields[2].trim()); //local trace number
 				this.minimizerOutput.add(row);
+//				System.out.println("load: " + row[0] + " " + row[1] + " " + row[2]);
 			}
 		}
+//		for (int [] row : this.minimizerOutput) {
+//			System.out.println("!!! " + row[0] + " " + row[1] + " " + row[2]);
+//		}
 	}
 	
 	private void loadBranchesToIgnore() throws IOException, NumberFormatException {
@@ -203,6 +208,18 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 		}
 	}
 	
+	public synchronized boolean checkPrepared(int taskNumber, int methodNumber, int localTraceNumber) {
+		if (this.minimizerOutput == null)
+			return false;
+		for (int i = taskNumber * this.options.getNumMOSATargets(); i < Math.min((taskNumber + 1) * this.options.getNumMOSATargets(), this.minimizerOutput.size()); ++i) {
+			final int[] row = this.minimizerOutput.get(i);
+			if (row[1] == methodNumber && row[2] == localTraceNumber) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public synchronized void onHeapSynTestGenerated(int taskNumber, int methodNumber, int localTraceNumber) {
 		final HashSet<Integer> branchesOfTarget = branchesOfTarget(taskNumber, methodNumber, localTraceNumber);
 		final HashSet<Integer> branchesNew = new HashSet<>(branchesOfTarget);
@@ -227,6 +244,10 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 	//here synchronization is possibly redundant
 
 	private synchronized HashSet<Integer> branchesOfTarget(int taskNumber, int methodNumber, int localTraceNumber) {
+//		assert(this.minimizerOutput != null);
+//		for (int [] row : this.minimizerOutput) {
+//			System.out.println("??? " + row[0] + " " + row[1] + " " + row[2]);
+//		}
 		for (int i = taskNumber * this.options.getNumMOSATargets(); i < Math.min((taskNumber + 1) * this.options.getNumMOSATargets(), this.minimizerOutput.size()); ++i) {
 			final int[] row = this.minimizerOutput.get(i);
 			if (row[1] == methodNumber && row[2] == localTraceNumber) {
