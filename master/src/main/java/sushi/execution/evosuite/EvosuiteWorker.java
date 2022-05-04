@@ -46,14 +46,15 @@ public class EvosuiteWorker extends Worker {
 			final int exitStatus = process.waitFor();
 			final long elapsed = System.currentTimeMillis() - start;
 //			this.evosuite.totTimeEvosuite += elapsed;
-			if (elapsed / 1000 > this.evosuite.getTimeBudget()) {
-				this.evosuite.totTimeFail += elapsed;
-				++this.evosuite.numRunFail;
-			} else {
+			if (this.evosuite.checkCompleted(taskNumber)) {
 				this.evosuite.totTimeSucc += elapsed;
 				++this.evosuite.numRunSucc;
+				logger.debug("Task " + this.taskNumber + " completed, elapsed " + elapsed/1000 + " seconds");
+			} else {
+				this.evosuite.totTimeFail += elapsed;
+				++this.evosuite.numRunFail;
+				logger.debug("Task " + this.taskNumber + " ended, elapsed " + elapsed/1000 + " seconds");
 			}
-			logger.debug("Task " + this.taskNumber + " ended, elapsed " + elapsed/1000 + " seconds");
 			td.join();
 			final ExecutionResult result = new ExecutionResult();
 			result.setExitStatus(exitStatus);
