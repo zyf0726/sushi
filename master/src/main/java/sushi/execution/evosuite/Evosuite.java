@@ -35,6 +35,10 @@ public class Evosuite extends Tool<String[]> {
 	
 	private RunHeapSyn heapsynRunner;
 	
+	public boolean checkCompleted(int taskNumber) {
+		return this.evosuiteCoordinator.checkCompleted(taskNumber);
+	}
+	
 	public int getNumGeneratedTest() {
 		return this.evosuiteCoordinator.getNumberGeneratedTest();
 	}

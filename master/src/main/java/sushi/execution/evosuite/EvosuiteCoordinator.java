@@ -34,6 +34,7 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 	private ArrayList<int[]> minimizerOutput;
 	private HashSet<Integer> branchesToIgnore;
 	private HashSet<Integer> cancelledTasks = new HashSet<>();
+	private HashSet<Integer> completedTasks = new HashSet<>();
 	
 	private int numGeneratedTest = 0;
 	
@@ -62,6 +63,7 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 			loadTracesOfTasks();
 			loadMinimizerOutput();
 			loadBranchesToIgnore();
+			this.completedTasks.clear();
 		} catch (IOException e) {
 			logger.fatal("Error occurred while reading coverage or minimizer data");
 			throw new CoordinatorException(e);
@@ -186,8 +188,13 @@ public class EvosuiteCoordinator extends Coordinator implements TestGenerationNo
 		}
 	}
 	
+	public synchronized boolean checkCompleted(int taskNumber) {
+		return this.completedTasks.contains(taskNumber);
+	}
+	
 	@Override
 	public synchronized void onTestGenerated(int taskNumber, int methodNumber, int localTraceNumber) {
+		this.completedTasks.add(taskNumber);
 		final HashSet<Integer> branchesOfTarget = branchesOfTarget(taskNumber, methodNumber, localTraceNumber);
 		final HashSet<Integer> branchesNew = new HashSet<>(branchesOfTarget);
 		branchesNew.removeAll(this.coveredBranches);
