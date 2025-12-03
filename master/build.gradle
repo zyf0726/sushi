@@ -4,8 +4,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
-def glpkJavaVersion = '1.11.0'
-def glpkJavaJniLocation = 'C:/Program Files/glpk-4.64/w64/'
+def glpkJavaVersion = '1.12.0'
+def glpkJavaJniLocation = 'D:/Code/eclipse-workspaces/HeapSyn-Experiments/glpk-4.65/w64/'
 def z3JavaLibLocation = 'D:/Tools/z3-4.8.10-x64-win/bin/'
 def javaHome = javaToolchains.compilerFor { languageVersion = javaVersion }.get().metadata.installationPath.asFile.toString()
 

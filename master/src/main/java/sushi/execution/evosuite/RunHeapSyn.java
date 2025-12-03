@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import heapsyn.algo.DynamicGraphBuilder;
+import heapsyn.algo.GraphBuilderWithoutMerging;
 import heapsyn.algo.Statement;
 import heapsyn.algo.TestGenerator;
 import heapsyn.algo.WrappedHeap;
@@ -48,7 +49,7 @@ public class RunHeapSyn {
 		this.numRunFail = this.numRunSucc = 0;
 	}
 	
-	private List<WrappedHeap> buildGraph(HeapSynParameters p) {
+	private List<WrappedHeap> buildGraph(HeapSynParameters p, boolean doStateMerging) {
 		if (DEBUG_MODE == true) {
 			try {
 				List<WrappedHeap> heaps = WrappedHeap.importHeapsFrom(
@@ -64,17 +65,31 @@ public class RunHeapSyn {
 		long start = System.currentTimeMillis();
 		
 		SymbolicExecutor executor = new SymbolicExecutorWithCachedJBSE(
-				p.getFieldFilter());
-		DynamicGraphBuilder gb = new DynamicGraphBuilder(
-				executor, getPublicMethods(p.getTargetClass()));
-		for (Entry<Class<?>, Integer> entry : p.getHeapScope().entrySet()) {
-			Class<?> cls = entry.getKey();
-			int scope = entry.getValue();
-			logger.debug("set heap scope of " + cls + " to " + scope);
-			gb.setHeapScope(entry.getKey(), entry.getValue());
+				p.getFieldFilter(), doStateMerging);
+		List<WrappedHeap> heaps;
+		if (doStateMerging) {
+			DynamicGraphBuilder gb = new DynamicGraphBuilder(
+					executor, getPublicMethods(p.getTargetClass()));
+			for (Entry<Class<?>, Integer> entry : p.getHeapScope().entrySet()) {
+				Class<?> cls = entry.getKey();
+				int scope = entry.getValue();
+				logger.debug("set heap scope of " + cls + " to " + scope);
+				gb.setHeapScope(entry.getKey(), entry.getValue());
+			}
+			SymbolicHeap initHeap = new SymbolicHeapAsDigraph(ExistExpr.ALWAYS_TRUE);
+			heaps = gb.buildGraph(initHeap, p.getMaxSeqLength());
+		} else {
+			GraphBuilderWithoutMerging gb = new GraphBuilderWithoutMerging(
+					executor, getPublicMethods(p.getTargetClass()), false);
+			for (Entry<Class<?>, Integer> entry : p.getHeapScope().entrySet()) {
+				Class<?> cls = entry.getKey();
+				int scope = entry.getValue();
+				logger.debug("set heap scope of " + cls + " to " + scope);
+				gb.setHeapScope(entry.getKey(), entry.getValue());
+			}
+			SymbolicHeap initHeap = new SymbolicHeapAsDigraph(ExistExpr.ALWAYS_TRUE);
+			heaps = gb.buildGraph(initHeap, p.getMaxSeqLength());
 		}
-		SymbolicHeap initHeap = new SymbolicHeapAsDigraph(ExistExpr.ALWAYS_TRUE);
-		List<WrappedHeap> heaps = gb.buildGraph(initHeap, p.getMaxSeqLength());
 		
 		long elapsed = System.currentTimeMillis() - start;
 		this.timeBuildGraph = elapsed;
@@ -99,8 +114,12 @@ public class RunHeapSyn {
 		return heaps;
 	}
 	
+	public void onlyBuildGraph(boolean doStateMerging) {
+		this.buildGraph(this.parameters, doStateMerging);
+	}
+	
 	public void init() {
-		List<WrappedHeap> heaps = this.buildGraph(this.parameters);
+		List<WrappedHeap> heaps = this.buildGraph(this.parameters, true);
 		this.testGenerator = new TestGenerator(heaps);
 	}
 	
