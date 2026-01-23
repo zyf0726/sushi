@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -26,14 +28,10 @@ import sushi.logging.Logger;
 public class RunHeapSyn {
 	
 	private static final Logger logger = new Logger(RunHeapSyn.class);
-	
-	public static boolean DEBUG_MODE	= true;
-	
-	private final String TMP_DIR		= "tmp/";
-	private final String GRAPHOBJ_EXT	= ".graph";
-	private final String GRAPHTXT_EXT	= ".txt";
-	
-	private HeapSynParameters parameters;
+	private static final String GRAPHOBJ_NAME = "exported_graph.obj";
+	private static final String GRAPHTXT_NAME = "exported_graph.txt";
+
+	private final HeapSynParameters parameters;
 	
 	private TestGenerator testGenerator;
 	
@@ -49,25 +47,26 @@ public class RunHeapSyn {
 		this.numRunFail = this.numRunSucc = 0;
 	}
 	
-	private List<WrappedHeap> buildGraph(HeapSynParameters p, boolean doStateMerging) {
-		if (DEBUG_MODE == true) {
+	private List<WrappedHeap> buildGraph(HeapSynParameters p) {
+		if (p.getDoImportation()) {
+			Path graphObjPath = p.getTmpDirPath().resolve(GRAPHOBJ_NAME);
 			try {
 				List<WrappedHeap> heaps = WrappedHeap.importHeapsFrom(
-						TMP_DIR + p.getTargetClass().getName() + GRAPHOBJ_EXT);
-				logger.info("heap transformation graph imported");
+						graphObjPath.toAbsolutePath().toString());
+				logger.info("heap transformation graph imported from " + graphObjPath.toAbsolutePath());
 				return heaps;
 			} catch (IOException | ClassNotFoundException e) {
-				logger.info("import heap transformation graph failed: " + e.getMessage());
+				logger.warn("import heap transformation graph failed: " + e.getMessage());
 			}
 		}
-		
+
 		logger.info("building heap transformation graph for " + p.getTargetClass());
 		long start = System.currentTimeMillis();
 		
 		SymbolicExecutor executor = new SymbolicExecutorWithCachedJBSE(
-				p.getFieldFilter(), doStateMerging);
+				p.getFieldFilter(), p.getDoStateMerging());
 		List<WrappedHeap> heaps;
-		if (doStateMerging) {
+		if (p.getDoStateMerging()) {
 			DynamicGraphBuilder gb = new DynamicGraphBuilder(
 					executor, getPublicMethods(p.getTargetClass()));
 			for (Entry<Class<?>, Integer> entry : p.getHeapScope().entrySet()) {
@@ -94,32 +93,33 @@ public class RunHeapSyn {
 		long elapsed = System.currentTimeMillis() - start;
 		this.timeBuildGraph = elapsed;
 		logger.info("heap transformation graph built, elapsed " + elapsed/1000 + " seconds");
-		
-		if (DEBUG_MODE == true) {
-			try {
-				DynamicGraphBuilder.__debugPrintOut(heaps, executor,
-						new PrintStream(TMP_DIR + p.getTargetClass().getName() + GRAPHTXT_EXT));
-				logger.info("heap transofrmation graph printed");
+
+		if (p.getDoExportation()) {
+			Path graphTxtPath = p.getTmpDirPath().resolve(GRAPHTXT_NAME);
+			try (PrintStream ps = new PrintStream(Files.newOutputStream(graphTxtPath))) {
+				DynamicGraphBuilder.__debugPrintOut(heaps, executor, ps);
+				logger.info("heap transformation graph printed to " + graphTxtPath.toAbsolutePath());
 			} catch (IOException e) {
-				logger.info("print heap transformation graph failed :" + e.getMessage());
+				logger.warn("print heap transformation graph failed :" + e.getMessage());
 			}
+			Path graphObjPath = p.getTmpDirPath().resolve(GRAPHOBJ_NAME);
 			try {
-				WrappedHeap.exportHeapsTo(heaps, TMP_DIR + p.getTargetClass().getName() + GRAPHOBJ_EXT);
-				logger.info("heap transofrmation graph exported");
+				WrappedHeap.exportHeapsTo(heaps, graphObjPath.toAbsolutePath().toString());
+				logger.info("heap transformation graph exported to " + graphObjPath.toAbsolutePath());
 			} catch (IOException e) {
-				logger.info("export heap transformation graph failed :" + e.getMessage());
+				logger.warn("export heap transformation graph failed :" + e.getMessage());
 			}
 		}
 		
 		return heaps;
 	}
 	
-	public void onlyBuildGraph(boolean doStateMerging) {
-		this.buildGraph(this.parameters, doStateMerging);
+	public void onlyBuildGraph() {
+		this.buildGraph(this.parameters);
 	}
 	
 	public void init() {
-		List<WrappedHeap> heaps = this.buildGraph(this.parameters, true);
+		List<WrappedHeap> heaps = this.buildGraph(this.parameters);
 		this.testGenerator = new TestGenerator(heaps);
 	}
 	

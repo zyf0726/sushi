@@ -1,5 +1,6 @@
 package sushi.execution.evosuite;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -54,6 +55,46 @@ public class HeapSynParameters {
 	
 	public Predicate<String> getFieldFilter() {
 		return this.fieldFilter;
+	}
+
+	private boolean doStateMerging;
+
+	public void setDoStateMerging(boolean doStateMerging) {
+		this.doStateMerging = doStateMerging;
+	}
+
+	public boolean getDoStateMerging() {
+		return this.doStateMerging;
+	}
+
+	private boolean doExportation;
+
+	public void setDoExportation(boolean doExportation) {
+		this.doExportation = doExportation;
+	}
+
+	public boolean getDoExportation() {
+		return this.doExportation;
+	}
+
+	private boolean doImportation;
+
+	public void setDoImportation(boolean doImportation) {
+		this.doImportation = doImportation;
+	}
+
+	public boolean getDoImportation() {
+		return this.doImportation;
+	}
+
+	private Path tmpDirPath;
+
+	public void setTmpDirPath(Path tmpDirPath) {
+		this.tmpDirPath = tmpDirPath;
+	}
+
+	public Path getTmpDirPath() {
+		return this.tmpDirPath;
 	}
 
 }
